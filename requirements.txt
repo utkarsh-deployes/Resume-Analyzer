@@ -1,4 +1,5 @@
 Flask
+Flask-Cors
 google-generativeai
 python-dotenv
 python-docx
