@@ -1,10 +1,11 @@
-from flask import Flask, request, render_template
+from flask import Flask, request, jsonify, render_template
 import google.generativeai as genai
 from docx import Document  # Correct import for docx
 import fitz  # For .pdf files (PyMuPDF)
 import os
 from dotenv import load_dotenv
 import re
+from flask_cors import CORS
 
 # Load environment variables
 load_dotenv()
@@ -16,6 +17,7 @@ genai.configure(api_key=GEMINI_API_KEY)
 model = genai.GenerativeModel('models/gemini-1.5-flash-latest')
 
 app = Flask(__name__)
+CORS(app)
 
 # --- Function to extract text from an uploaded file ---
 def extract_text_from_file(uploaded_file):
@@ -48,9 +50,7 @@ def index():
 def analyze():
     resume_file = request.files['resume']
     job_description = request.form['job_description']
-
     resume_text = extract_text_from_file(resume_file)
-
     prompt = f"""
     Analyze the RESUME based on the JOB DESCRIPTION.
     Provide a "fit score" from 1 to 100.
@@ -66,7 +66,7 @@ def analyze():
     response = model.generate_content(prompt)
     cleaned_result = clean_markdown(response.text)  # Clean the output
 
-    return render_template('index.html', analysis_result=cleaned_result)
+    return jsonify({'analysis_result': cleaned_result})
 
 if __name__ == '__main__':
     app.run(debug=True)
