@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Resume Analyzer</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for a modern look -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .main-card {
+            background-color: white;
+            border-radius: 24px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e7e5f4;
+        }
+        .feature-card {
+            background-color: white;
+            border-radius: 16px;
+            border: 1px solid #e7e5f4;
+            transition: all 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+        }
+        .drop-zone {
+            border: 2px dashed #d1d5db;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        .drop-zone.drag-over {
+            border-color: #6d28d9;
+            background-color: #f5f3ff;
+        }
+        .analyze-button {
+            background: linear-gradient(90deg, #8b5cf6, #6d28d9);
+            transition: all 0.3s ease;
+        }
+        .analyze-button:hover {
+            box-shadow: 0 6px 20px rgba(109, 40, 217, 0.3);
+            transform: translateY(-2px);
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #6d28d9;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <div class="container mx-auto max-w-4xl p-4 md:p-8">
+        
+        <!-- Header Section -->
+        <header class="text-center mb-10">
+            <div class="inline-block bg-violet-100 text-violet-700 p-3 rounded-xl mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
+            </div>
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-900">Smart Resume <span class="text-violet-600">Analyzer</span></h1>
+            <p class="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
+                Get AI-powered insights on how well your resume matches job requirements. Upload your resume and job description for personalized feedback.
+            </p>
+        </header>
+
+        <!-- Main Form Card -->
+        <div class="main-card p-6 md:p-10">
+            <form id="analyzer-form" action="/analyze" method="post" enctype="multipart/form-data" autocomplete="off">
+                
+                <!-- Resume Upload Section -->
+                <div class="mb-8">
+                    <label class="text-lg font-semibold text-gray-800 mb-3 block">
+                        <span class="inline-block bg-gray-100 text-gray-600 p-2 rounded-md mr-2">📄</span>
+                        Upload Your Resume
+                    </label>
+                    <div id="drop-zone" class="drop-zone p-6 text-center cursor-pointer">
+                        <div class="flex flex-col items-center justify-center">
+                            <svg class="w-12 h-12 text-gray-400 mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" /></svg>
+                            <p class="text-gray-600 font-semibold" id="file-name-display">Drop your resume here or click to browse</p>
+                            <p class="text-sm text-gray-500 mt-1">Supports PDF and DOCX files</p>
+                        </div>
+                        <input type="file" id="resume" name="resume" accept=".pdf,.docx" class="hidden" required>
+                    </div>
+                </div>
+
+                <!-- Job Description Section -->
+                <div class="mb-8">
+                    <label for="job_description" class="text-lg font-semibold text-gray-800 mb-3 block">
+                        <span class="inline-block bg-gray-100 text-gray-600 p-2 rounded-md mr-2">📋</span>
+                        Job Description
+                    </label>
+                    <textarea id="job_description" name="job_description" rows="10" placeholder="Paste the complete job description here. Include requirements, responsibilities, and preferred qualifications for the best analysis..." required class="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-violet-500 transition"></textarea>
+                </div>
+
+                <!-- Submit Button -->
+                <button id="submit-button" type="submit" class="analyze-button w-full text-white font-bold py-4 px-4 rounded-xl text-lg flex items-center justify-center">
+                    <span id="button-text">✨ Analyze My Resume</span>
+                    <div id="loader" class="loader hidden"></div>
+                </button>
+            </form>
+        </div>
+
+        <!-- Analysis Result Section (conditionally rendered by Flask) -->
+        {% if analysis_result %}
+        <div id="result-section" class="main-card p-6 md:p-10 mt-10">
+             <h2 class="text-2xl font-bold text-gray-900 mb-4">Analysis Result</h2>
+             <div class="bg-gray-50 p-6 rounded-xl border border-gray-200">
+                <pre class="whitespace-pre-wrap text-gray-700 font-sans">{{ analysis_result }}</pre>
+             </div>
+        </div>
+        {% endif %}
+
+        <!-- Feature Cards Section -->
+        <div class="grid md:grid-cols-3 gap-8 text-center mt-16">
+            <div class="feature-card p-8">
+                <div class="inline-block bg-violet-100 text-violet-700 p-3 rounded-xl mb-4">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+                </div>
+                <h3 class="text-xl font-semibold mb-2">AI-Powered Analysis</h3>
+                <p class="text-gray-600">Advanced algorithms analyze your resume against job requirements.</p>
+            </div>
+            <div class="feature-card p-8">
+                <div class="inline-block bg-blue-100 text-blue-700 p-3 rounded-xl mb-4">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
+                </div>
+                <h3 class="text-xl font-semibold mb-2">Detailed Feedback</h3>
+                <p class="text-gray-600">Get specific recommendations to improve your application.</p>
+            </div>
+            <div class="feature-card p-8">
+                 <div class="inline-block bg-green-100 text-green-700 p-3 rounded-xl mb-4">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                </div>
+                <h3 class="text-xl font-semibold mb-2">Match Scoring</h3>
+                <p class="text-gray-600">See how well your skills align with the job posting.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('resume');
+        const fileNameDisplay = document.getElementById('file-name-display');
+        const form = document.getElementById('analyzer-form');
+        const submitButton = document.getElementById('submit-button');
+        const buttonText = document.getElementById('button-text');
+        const loader = document.getElementById('loader');
+
+        // --- Drag and Drop Functionality ---
+        dropZone.addEventListener('click', () => fileInput.click());
+        
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('drag-over');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            const files = e.dataTransfer.files;
+            if (files.length) {
+                fileInput.files = files;
+                updateFileName(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length) {
+                updateFileName(fileInput.files[0]);
+            }
+        });
+
+        function updateFileName(file) {
+            if (file) {
+                fileNameDisplay.textContent = file.name;
+                fileNameDisplay.classList.remove('text-gray-600');
+                fileNameDisplay.classList.add('text-violet-700');
+            }
+        }
+
+        // --- Form Submission Loading State ---
+        form.addEventListener('submit', () => {
+            // Check for basic form validity before showing loader
+            if (fileInput.files.length > 0 && document.getElementById('job_description').value.trim() !== '') {
+                buttonText.textContent = 'Analyzing...';
+                loader.classList.remove('hidden');
+                submitButton.disabled = true;
+                submitButton.classList.add('opacity-75', 'cursor-not-allowed');
+            }
+        });
+
+    </script>
+</body>
+</html>
