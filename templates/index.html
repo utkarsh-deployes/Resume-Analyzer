@@ -4,71 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Resume Analyzer</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8f9fa; }
-        .main-card {
-            background-color: white;
-            border-radius: 24px;
-            box-shadow: 0 8px M30px rgba(0, 0, 0, 0.05);
-            border: 1px solid #e7e5f4;
-        }
-        .feature-card {
-            background-color: white;
-            border-radius: 16px;
-            border: 1px solid #e7e5f4;
-            transition: all 0.3s ease;
-        }
-        .feature-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
-        }
-        .drop-zone {
-            border: 2px dashed #d1d5db;
-            border-radius: 12px;
-            transition: all 0.3s ease;
-        }
-        .drop-zone.drag-over {
-            border-color: #6d28d9;
-            background-color: #f5f3ff;
-        }
-        .analyze-button {
-            background: linear-gradient(90deg, #8b5cf6, #6d28d9);
-            transition: all 0.3s ease;
-        }
-        .analyze-button:hover {
-            box-shadow: 0 6px 20px rgba(109, 40, 217, 0.3);
-            transform: translateY(-2px);
-        }
-        .loader {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #6d28d9;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Resume Analyzer</title>
+
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
     
-    <!-- === CRITICAL FIX === -->
-    <!-- 1. Removed the old, unreliable Tailwind CDN script -->
-    <!-- 2. Added the link to your local style.css file -->
     <link href="style.css" rel="stylesheet">
-    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- This inline style block is for your custom styles, it should remain. -->
     <style>
+        /* Your existing styles are unchanged */
         body { font-family: 'Inter', sans-serif; background-color: #f8f9fa; }
         .main-card {
             background-color: white;
@@ -201,93 +144,124 @@
                 <p class="text-gray-600">See how well your skills align with the job posting.</p>
             </div>
         </div>
-    </div>
+</div>
 
-    <script>
-        const dropZone = document.getElementById('drop-zone');
-        const fileInput = document.getElementById('resume');
-        const fileNameDisplay = document.getElementById('file-name-display');
-        const form = document.getElementById('analyzer-form');
-        const submitButton = document.getElementById('submit-button');
-        const buttonText = document.getElementById('button-text');
-        const loader = document.getElementById('loader');
-        const resultSection = document.getElementById('result-section');
-        const analysisResult = document.getElementById('analysis-result');
+<!-- === NEW: Footer Section === -->
+<footer class="text-center py-8 text-gray-500 text-sm">
+    <p>Developed by Utkarsh. View on <a href="https://github.com/utkarsh-deployes/Resume-Analyzer" target="_blank" rel="noopener noreferrer" class="text-violet-600 hover:underline">GitHub</a>.</p>
+</footer>
 
-        // Drag and Drop functionality
-        dropZone.addEventListener('click', () => fileInput.click());
-        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
-        dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('drag-over'); });
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropZone.classList.remove('drag-over');
-            const files = e.dataTransfer.files;
-            if (files.length > 0 && (files[0].type === "application/pdf" || files[0].name.endsWith('.docx'))) {
-                fileInput.files = files;
-                updateFileName(files[0]);
-            } else {
-                alert('Please drop a valid PDF or DOCX file.');
-            }
-        });
+<!-- === NEW: Notification Toast === -->
+<div id="notification" class="fixed bottom-5 right-5 bg-red-600 text-white py-3 px-5 rounded-lg shadow-lg hidden transition-opacity duration-300 z-50">
+    <p id="notification-message"></p>
+</div>
 
-        fileInput.addEventListener('change', () => {
-            if (fileInput.files.length) updateFileName(fileInput.files[0]);
-        });
 
-        function updateFileName(file) {
-            if (file) {
-                fileNameDisplay.textContent = file.name;
-                fileNameDisplay.classList.remove('text-gray-600');
-                fileNameDisplay.classList.add('text-violet-700', 'font-bold');
-            }
+<script>
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('resume');
+    const fileNameDisplay = document.getElementById('file-name-display');
+    const form = document.getElementById('analyzer-form');
+    const submitButton = document.getElementById('submit-button');
+    const buttonText = document.getElementById('button-text');
+    const loader = document.getElementById('loader');
+    const resultSection = document.getElementById('result-section');
+    const analysisResult = document.getElementById('analysis-result');
+    
+    // === NEW: Notification elements ===
+    const notification = document.getElementById('notification');
+    const notificationMessage = document.getElementById('notification-message');
+
+    // === NEW: Function to show notifications ===
+    function showNotification(message, isError = true) {
+        notificationMessage.textContent = message;
+        // Optional: change color for success/error
+        notification.style.backgroundColor = isError ? '#DC2626' : '#22C55E';
+        notification.classList.remove('hidden');
+        setTimeout(() => {
+            notification.classList.add('hidden');
+        }, 3000); // Hide after 3 seconds
+    }
+
+    // Drag and Drop functionality
+    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+    dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('drag-over'); });
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('drag-over');
+        const files = e.dataTransfer.files;
+        if (files.length > 0 && (files[0].type === "application/pdf" || files[0].name.endsWith('.docx'))) {
+            fileInput.files = files;
+            updateFileName(files[0]);
+        } else {
+            // === UPDATED: Replaced alert with notification ===
+            showNotification('Please drop a valid PDF or DOCX file.');
+        }
+    });
+
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files.length) updateFileName(fileInput.files[0]);
+    });
+
+    function updateFileName(file) {
+        if (file) {
+            fileNameDisplay.textContent = file.name;
+            fileNameDisplay.classList.remove('text-gray-600');
+            fileNameDisplay.classList.add('text-violet-700', 'font-bold');
+        }
+    }
+
+    // AJAX Form Submission
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (fileInput.files.length === 0 || document.getElementById('job_description').value.trim() === '') {
+            // === UPDATED: Replaced alert with notification ===
+            showNotification('Please upload a resume and paste a job description.');
+            return;
         }
 
-        // AJAX Form Submission
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            if (fileInput.files.length === 0 || document.getElementById('job_description').value.trim() === '') {
-                alert('Please upload a resume and paste a job description.');
-                return;
+        // Start loading state
+        buttonText.textContent = 'Analyzing...';
+        loader.classList.remove('hidden');
+        submitButton.disabled = true;
+        submitButton.classList.add('opacity-75', 'cursor-not-allowed');
+        resultSection.classList.add('hidden');
+        analysisResult.textContent = '';
+
+        const formData = new FormData();
+        formData.append('resume', fileInput.files[0]);
+        formData.append('job_description', document.getElementById('job_description').value);
+
+        try {
+            const response = await fetch('https://resume-analyzer-787i.onrender.com/analyze', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || `Server responded with status ${response.status}`);
             }
+            
+            analysisResult.textContent = data.analysis_result || 'No result received.';
+            resultSection.classList.remove('hidden');
 
-            // Start loading state
-            buttonText.textContent = 'Analyzing...';
-            loader.classList.remove('hidden');
-            submitButton.disabled = true;
-            submitButton.classList.add('opacity-75', 'cursor-not-allowed');
-            resultSection.classList.add('hidden');
-            analysisResult.textContent = '';
+        } catch (err) {
+            // === UPDATED: Using notification for fetch errors too ===
+            showNotification('An error occurred: ' + err.message);
+            resultSection.classList.remove('hidden'); // Show the section to display the error
+            analysisResult.textContent = 'An error occurred. Please try again later.';
 
-            const formData = new FormData();
-            formData.append('resume', fileInput.files[0]);
-            formData.append('job_description', document.getElementById('job_description').value);
-
-            try {
-                const response = await fetch('https://resume-analyzer-787i.onrender.com/analyze', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const data = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(data.error || `Server responded with status ${response.status}`);
-                }
-                
-                analysisResult.textContent = data.analysis_result || 'No result received.';
-                resultSection.classList.remove('hidden');
-
-            } catch (err) {
-                analysisResult.textContent = 'An error occurred: ' + err.message;
-                resultSection.classList.remove('hidden');
-            } finally {
-                // End loading state
-                buttonText.textContent = '✨ Analyze My Resume';
-                loader.classList.add('hidden');
-                submitButton.disabled = false;
-                submitButton.classList.remove('opacity-75', 'cursor-not-allowed');
-            }
-        });
-    </script>
+        } finally {
+            // End loading state
+            buttonText.textContent = '✨ Analyze My Resume';
+            loader.classList.add('hidden');
+            submitButton.disabled = false;
+            submitButton.classList.remove('opacity-75', 'cursor-not-allowed');
+        }
+    });
+</script>
 </body>
 </html>
