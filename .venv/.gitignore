@@ -1,0 +1,11 @@
+# Environment variables
+.env
+
+# Python virtual environment folder
+.venv/
+venv/
+
+# IDE specific files
+.vscode/
+```
+
